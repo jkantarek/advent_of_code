@@ -58,7 +58,8 @@ defmodule AdventOfCode.Y2021.Day1 do
       1548
 
   """
-  def part1 do
+
+  def fetch_inputs() do
     {:ok, file} = File.read("lib/y_2021/day1_input.txt")
     inputs = file
     |> String.split("\n")
@@ -66,6 +67,10 @@ defmodule AdventOfCode.Y2021.Day1 do
     |> Enum.map(fn(s) ->
       get_int(Integer.parse(s), s)
     end)
+  end
+
+  def part1 do
+    inputs = fetch_inputs()
     iterate(nil, inputs,  0)
   end
 
@@ -82,4 +87,72 @@ defmodule AdventOfCode.Y2021.Day1 do
     ncount = compare_and_count(previous, next, count)
     iterate(next, tail, ncount)
   end
+
+  @doc """
+  Day 1 - Part 2
+
+  --- Part Two ---
+
+  Considering every single measurement isn't as useful as you expected: there's just too much noise in the data.
+
+  Instead, consider sums of a three-measurement sliding window. Again considering the above example:
+
+  199  A
+  200  A B
+  208  A B C
+  210    B C D
+  200  E   C D
+  207  E F   D
+  240  E F G
+  269    F G H
+  260      G H
+  263        H
+
+  Start by comparing the first and second three-measurement windows. The measurements in the first window are marked A (199, 200, 208); their sum is 199 + 200 + 208 = 607. The second window is marked B (200, 208, 210); its sum is 618. The sum of measurements in the second window is larger than the sum of the first, so this first comparison increased.
+
+  Your goal now is to count the number of times the sum of measurements in this sliding window increases from the previous sum. So, compare A with B, then compare B with C, then C with D, and so on. Stop when there aren't enough measurements left to create a new three-measurement sum.
+
+  In the above example, the sum of each three-measurement window is as follows:
+
+  A: 607 (N/A - no previous sum)
+  B: 618 (increased)
+  C: 618 (no change)
+  D: 617 (decreased)
+  E: 647 (increased)
+  F: 716 (increased)
+  G: 769 (increased)
+  H: 792 (increased)
+
+  In this example, there are 5 sums that are larger than the previous sum.
+
+  Consider sums of a three-measurement sliding window. How many sums are larger than the previous sum?
+
+
+  ## Examples
+
+    iex> AdventOfCode.Y2021.Day1.part2()
+    1589
+
+  """
+
+  def part2() do
+    inputs = fetch_inputs()
+    iterate_window(nil, nil, nil, inputs, 0)
+  end
+
+  def iterate_window(_, _, _, [], count), do: count
+
+  def iterate_window(p1, p2, p3, [n1 | tail], count) when is_integer(p1) and is_integer(p2) and is_integer(p3) do
+    s1 = p1+p2+p3
+    s2 = p2+p3+n1
+    new_count = window_compare(s1, s2, count)
+    iterate_window(p2, p3, n1, tail, new_count)
+  end
+
+  def iterate_window(p1, p2, p3, [n1 | tail], count) do
+    iterate_window(p2, p3, n1, tail, count)
+  end
+
+  def window_compare(s1, s2, count) when s2 > s1, do: count + 1
+  def window_compare(_, _, count), do: count
 end
