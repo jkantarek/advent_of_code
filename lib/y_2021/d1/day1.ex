@@ -60,29 +60,30 @@ defmodule AdventOfCode.Y2021.Day1 do
   """
 
   def fetch_inputs() do
-    {:ok, file} = File.read("lib/y_2021/day1_input.txt")
-    inputs = file
+    {:ok, file} = File.read("lib/y_2021/d1/input.txt")
+
+    file
     |> String.split("\n")
-    |> Enum.reject(fn(elem) -> elem == "" || is_nil(elem) end)
-    |> Enum.map(fn(s) ->
+    |> Enum.reject(fn elem -> elem == "" || is_nil(elem) end)
+    |> Enum.map(fn s ->
       get_int(Integer.parse(s), s)
     end)
   end
 
   def part1 do
     inputs = fetch_inputs()
-    iterate(nil, inputs,  0)
+    iterate(nil, inputs, 0)
   end
 
   defp get_int({n, ""}, _), do: n
 
   defp compare_and_count(nil, _, count), do: count
   defp compare_and_count(_, nil, count), do: count
-  defp compare_and_count(prev, next, count) when next > prev, do: count+1
+  defp compare_and_count(prev, next, count) when next > prev, do: count + 1
   defp compare_and_count(_, _, count), do: count
 
-
   defp iterate(_, [], count), do: count
+
   defp iterate(previous, [next | tail], count) do
     ncount = compare_and_count(previous, next, count)
     iterate(next, tail, ncount)
@@ -142,9 +143,10 @@ defmodule AdventOfCode.Y2021.Day1 do
 
   def iterate_window(_, _, _, [], count), do: count
 
-  def iterate_window(p1, p2, p3, [n1 | tail], count) when is_integer(p1) and is_integer(p2) and is_integer(p3) do
-    s1 = p1+p2+p3
-    s2 = p2+p3+n1
+  def iterate_window(p1, p2, p3, [n1 | tail], count)
+      when is_integer(p1) and is_integer(p2) and is_integer(p3) do
+    s1 = p1 + p2 + p3
+    s2 = p2 + p3 + n1
     new_count = window_compare(s1, s2, count)
     iterate_window(p2, p3, n1, tail, new_count)
   end
