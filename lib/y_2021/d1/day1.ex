@@ -60,14 +60,11 @@ defmodule AdventOfCode.Y2021.Day1 do
   """
 
   def fetch_inputs() do
-    {:ok, file} = File.read("lib/y_2021/d1/input.txt")
+    AdventOfCode.etl_file("lib/y_2021/d1/input.txt", &parse_row/1)
+  end
 
-    file
-    |> String.split("\n")
-    |> Enum.reject(fn elem -> elem == "" || is_nil(elem) end)
-    |> Enum.map(fn s ->
-      get_int(Integer.parse(s), s)
-    end)
+  def parse_row(s) do
+    get_int(Integer.parse(s), s)
   end
 
   def part1 do
@@ -151,7 +148,7 @@ defmodule AdventOfCode.Y2021.Day1 do
     iterate_window(p2, p3, n1, tail, new_count)
   end
 
-  def iterate_window(p1, p2, p3, [n1 | tail], count) do
+  def iterate_window(_p1, p2, p3, [n1 | tail], count) do
     iterate_window(p2, p3, n1, tail, count)
   end
 
