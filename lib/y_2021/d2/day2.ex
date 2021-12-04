@@ -40,25 +40,13 @@ defmodule AdventOfCode.Y2021.Day2 do
 
   ## Examples
 
-      # iex> AdventOfCode.Y2021.Day2.part1()
-      # %{answer: 2091984, position: %{x: 1968, y: 1063}}
+      iex> AdventOfCode.Y2021.Day2.part1()
+      %{answer: 2091984, position: %{x: 1968, y: 1063}}
 
   """
-
-  def fetch_inputs(parser) do
-    {:ok, file} = File.read("lib/y_2021/d2/input.txt")
-
-    file
-    |> String.split("\n")
-    |> Enum.reject(fn elem -> elem == "" || is_nil(elem) end)
-    |> Enum.map(fn s ->
-      parser.(s)
-    end)
-  end
-
   def part1 do
     {x, y} =
-      fetch_inputs(&parse_row/1)
+      AdventOfCode.etl_file("lib/y_2021/d2/input.txt", &parse_row/1)
       |> Enum.reduce({0, 0}, fn [direction, change], {x, y} ->
         compute_change(direction, change, {x, y})
       end)
@@ -140,7 +128,7 @@ defmodule AdventOfCode.Y2021.Day2 do
 
   def part2() do
     {f_x, f_y, f_aim} =
-      fetch_inputs(&parse_row/1)
+      AdventOfCode.etl_file("lib/y_2021/d2/input.txt", &parse_row/1)
       |> Enum.reduce({0, 0, 0}, fn [direction, change], {x, y, aim} ->
         compute_change_with_aim(direction, change, {x, y, aim})
       end)
