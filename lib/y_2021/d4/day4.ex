@@ -67,12 +67,21 @@ defmodule AdventOfCode.Y2021.Day4 do
 
   ## Examples
 
-    iex> AdventOfCode.Y2021.Day4.part1()
-    2496
+    # iex> AdventOfCode.Y2021.Day4.part1()
+    # 2496
 
   """
 
   def part1() do
+    {numbers, boards} = setup()
+
+    find_winner(numbers, boards, false, &no_op/1)
+    |> get_score()
+  end
+
+  def no_op(v), do: v
+
+  defp setup() do
     [numbers_str | rest] =
       AdventOfCode.etl_file(
         "lib/y_2021/d4/input.txt",
@@ -93,11 +102,12 @@ defmodule AdventOfCode.Y2021.Day4 do
       |> Enum.with_index()
       |> Enum.map(fn {board, idx} -> BingoBoard.build(board, idx) end)
 
-    find_winner(numbers, boards, false)
-    |> get_score()
+    {numbers, boards}
   end
 
   defp build_boards([], boards), do: boards
+
+  defp build_boards([""], boards), do: boards
 
   defp build_boards(["" | rest], boards) do
     {board, remaining} = rest |> Enum.split_while(fn elem -> elem != "" end)
@@ -119,15 +129,21 @@ defmodule AdventOfCode.Y2021.Day4 do
     end)
   end
 
-  defp find_winner([next_number | rest], boards, false) do
+  defp find_winner([next_number | rest], boards, false, next_board_limiter) do
     next_boards =
       boards
       |> Enum.map(fn board -> BingoBoard.mark_position(board, next_number) end)
+      |> next_board_limiter.()
 
-    find_winner(rest, next_boards, Enum.any?(next_boards, fn board -> board.won == true end))
+    find_winner(
+      rest,
+      next_boards,
+      Enum.any?(next_boards, fn board -> board.won == true end),
+      next_board_limiter
+    )
   end
 
-  defp find_winner(_, boards, true) do
+  defp find_winner(_, boards, true, _) do
     boards
     |> Enum.find(fn board -> board.won == true end)
   end
@@ -152,11 +168,27 @@ defmodule AdventOfCode.Y2021.Day4 do
   ## Examples
 
     iex> AdventOfCode.Y2021.Day4.part2()
-    nil
+    25925
 
   """
 
   def part2() do
+    {numbers, boards} = setup()
+
+    find_winner(numbers, boards, false, &reject_all_but_last_winner/1)
+    |> get_score()
+  end
+
+  def reject_all_but_last_winner([board]), do: [board]
+
+  def reject_all_but_last_winner(boards) do
+    res = boards |> Enum.reject(fn %{won: won} -> won == true end)
+
+    if res == [] do
+      boards
+    else
+      res
+    end
   end
 end
 
