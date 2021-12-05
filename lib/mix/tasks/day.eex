@@ -1,0 +1,33 @@
+defmodule AdventOfCode.Y<%= year %>.Day<%= day %> do
+  @moduledoc """
+
+  """
+
+  @doc """
+  Day 1 - Part 1
+
+  ## Examples
+
+    iex> AdventOfCode.Y<%= year %>.Day<%= day %>.part1()
+    nil
+
+  """
+
+  def part1() do
+
+  end
+
+  @doc """
+  Day <%= day %> - Part 2
+
+  ## Examples
+
+    iex> AdventOfCode.Y<%= year %>.Day<%= day %>.part2()
+    nil
+
+  """
+
+  def part2() do
+
+  end
+end
