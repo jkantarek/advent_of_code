@@ -36,4 +36,8 @@ defmodule AdventOfCode do
   def split_newline(v) do
     v |> String.split("\n")
   end
+
+  def split_comma(v) do
+    v |> String.split(",")
+  end
 end
