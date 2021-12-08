@@ -86,6 +86,7 @@ defmodule AdventOfCode.Y2021.Day4 do
       AdventOfCode.etl_file(
         "lib/y_2021/d4/input.txt",
         fn x -> x end,
+        &AdventOfCode.split_newline/1,
         %{reject_blanks: false, reject_nils: true}
       )
 
