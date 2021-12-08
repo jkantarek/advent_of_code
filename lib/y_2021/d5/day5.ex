@@ -1,31 +1,43 @@
 defmodule Vector do
-  defstruct x1: 0, y1: 0, x2: 0, y2: 0, orientation: :point, slope: 0.0, covered_points: []
+  defstruct x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: 0,
+            orientation: :point,
+            slope: 0.0,
+            covered_points: [],
+            b: 0.0
 
-  @type t(x1, y1, x2, y2, orientation, slope, covered_points) :: %Vector{
+  @type t(x1, y1, x2, y2, orientation, slope, covered_points, slope) :: %Vector{
           x1: x1,
           y1: y1,
           x2: x2,
           y2: y2,
           orientation: orientation,
           slope: slope,
-          covered_points: covered_points
+          covered_points: covered_points,
+          slope: slope
         }
 
   def build(x1, y1, x2, y2) when x1 >= 0 and y1 >= 0 and x2 >= 0 and y2 >= 0 and x2 != x1 do
     orientation = compute_orientation(x1, y1, x2, y2)
+    slope = (y2 - y1) / (x2 - x1)
+
     %Vector{
       x1: x1,
       y1: y1,
       x2: x2,
       y2: y2,
       orientation: orientation,
-      slope: (y2 - y1) / (x2 - x1),
-      covered_points: covered_points(orientation, x1, y1, x2, y2)
+      slope: slope,
+      b: y1 - slope * x1,
+      covered_points: covered_points(orientation, x1, y1, x2, y2, slope)
     }
   end
 
   def build(x1, y1, x2, y2) do
     orientation = compute_orientation(x1, y1, x2, y2)
+
     %Vector{
       x1: x1,
       y1: y1,
@@ -33,35 +45,57 @@ defmodule Vector do
       y2: y2,
       orientation: orientation,
       slope: 0,
-      covered_points: covered_points(orientation, x1, y1, x2, y2)
+      covered_points: covered_points(orientation, x1, y1, x2, y2, 0)
     }
   end
 
+  def on_vector(v, x1, y1) do
+    v.slope * x1 + v.b == y1
+  end
+
   def intersect(v1, v2) when v1 == v2, do: true
-  def intersect(%Vector{covered_points: c1}, %Vector{covered_points: c2}) when length(c1) > 0 and length(c2) > 0 do
+
+  def intersect(%Vector{covered_points: c1}, %Vector{covered_points: c2})
+      when length(c1) > 0 and length(c2) > 0 do
     true
   end
 
-  def intersections(%Vector{covered_points: c1}, %Vector{covered_points: c2}) when length(c1) > 0 and length(c2) > 0 do
-    (c1 -- c2 ++ c2 -- c1) |> length()
+  def intersections(%Vector{covered_points: c1}, %Vector{covered_points: c2})
+      when length(c1) > 0 and length(c2) > 0 do
+    (c1 -- (c2 ++ (c2 -- c1))) |> length()
   end
 
   def intersections(_v1, _v2), do: 0
 
-  defp covered_points(:horizontal, x1, y1, x2, y2) do
+  defp covered_points(:horizontal, x1, y1, x2, y2, _m) do
     [x] = get_list(x1, x2)
+
     get_list(y1, y2)
-    |> Enum.map(fn(y) -> {x, y} end)
+    |> Enum.map(fn y -> {x, y} end)
   end
 
-  defp covered_points(:vertical, x1, y1, x2, y2) do
+  defp covered_points(:vertical, x1, y1, x2, y2, _m) do
     [y] = get_list(y1, y2)
+
     get_list(x1, x2)
-    |> Enum.map(fn(x) -> {x, y} end)
+    |> Enum.map(fn x -> {x, y} end)
   end
 
-  defp covered_points(_any, _x1,_y1,_x2,_y2) do
-    []
+  defp covered_points(:angle, x1, y1, x2, _y2, slope) do
+    b = y1 - slope * x1
+
+    Enum.to_list(x1..x2)
+    |> Enum.map(fn x ->
+      {x, normalize_f(slope * x + b)}
+    end)
+  end
+
+  defp normalize_f(v) do
+    if v == round(v) do
+      round(v)
+    else
+      v
+    end
   end
 
   defp get_list(p1, p2), do: Enum.to_list(p1..p2)
@@ -132,9 +166,9 @@ defmodule AdventOfCode.Y2021.Day5 do
   def part1() do
     setup()
     |> Enum.reject(fn v -> v.orientation == :angle end)
-    |> Enum.flat_map(fn(v) -> v.covered_points end)
+    |> Enum.flat_map(fn v -> v.covered_points end)
     |> Enum.frequencies()
-    |> Enum.filter(fn({_k, v}) -> v >= 2 end)
+    |> Enum.filter(fn {_k, v} -> v >= 2 end)
     |> length()
   end
 
@@ -171,10 +205,17 @@ defmodule AdventOfCode.Y2021.Day5 do
   ## Examples
 
     iex> AdventOfCode.Y2021.Day5.part2()
-    nil
+    19571
 
   """
 
   def part2() do
+    lines = setup()
+
+    lines
+    |> Enum.flat_map(fn v -> v.covered_points end)
+    |> Enum.frequencies()
+    |> Enum.filter(fn {_k, v} -> v >= 2 end)
+    |> length()
   end
 end
