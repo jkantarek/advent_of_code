@@ -7,4 +7,5 @@ defmodule AdventOfCodeY2021Day1Test do
   doctest AdventOfCode.Y2021.Day5
   doctest AdventOfCode.Y2021.Day6
   doctest AdventOfCode.Y2021.Day7
+  doctest AdventOfCode.Y2021.Day8
 end
