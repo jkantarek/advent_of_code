@@ -39,21 +39,29 @@ defmodule AdventOfCode.Y2021.Day9 do
   def part1() do
     mapping =
       setup()
-      |> build_mappings()
+      |> build_mappings(&pass/2)
 
     mapping
     |> find_mins()
     |> sum_of_risk()
   end
 
-  def build_mappings(rows) do
+  def pass(_k, _v), do: true
+
+  def build_mappings(rows, filter) do
     rows
     |> Enum.with_index()
     |> Enum.reduce(%{}, fn {row, col_idx}, acc ->
       row
       |> Enum.with_index()
       |> Enum.reduce(acc, fn {v, row_idx}, row_acc ->
-        row_acc |> Map.merge(%{{row_idx, col_idx} => v})
+        k = {row_idx, col_idx}
+
+        if filter.(k, v) do
+          row_acc |> Map.merge(%{k => v})
+        else
+          row_acc
+        end
       end)
     end)
   end
@@ -61,16 +69,21 @@ defmodule AdventOfCode.Y2021.Day9 do
   def find_mins(mapping) do
     mapping
     |> Enum.filter(fn {{row_idx, col_idx}, v} ->
-      [
-        mapping[{row_idx + 1, col_idx}],
-        mapping[{row_idx - 1, col_idx}],
-        mapping[{row_idx, col_idx + 1}],
-        mapping[{row_idx, col_idx - 1}]
-      ]
+      get_adjacent(row_idx, col_idx, mapping)
       |> Enum.all?(fn neighbor_v ->
         is_nil(neighbor_v) or v < neighbor_v
       end)
     end)
+  end
+
+  def get_adjacent(row_idx, col_idx, mapping) do
+    [
+      mapping[{row_idx + 1, col_idx}],
+      mapping[{row_idx - 1, col_idx}],
+      mapping[{row_idx, col_idx + 1}],
+      mapping[{row_idx, col_idx - 1}]
+    ]
+    |> Enum.reject(fn v -> is_nil(v) end)
   end
 
   def sum_of_risk(mins) do
@@ -148,5 +161,146 @@ defmodule AdventOfCode.Y2021.Day9 do
   """
 
   def part2() do
+    mapping =
+      setup()
+      |> build_mappings(&reject_nines/2)
+
+    mins = find_mins(mapping)
+
+    [one, two, three | _rest] =
+      mapping
+      |> find_mins()
+      |> build_pools(mapping, %{})
+      |> sort_pools_by_size()
+
+    require IEx
+    IEx.pry()
+    # [one, two, three | _rest] = sort_by_size_with_value(mins, mapping)
+    # group_valleys(mins, mapping)
+    # one * two * three
+  end
+
+  def build_pools([{{x,y}, val} | rest], mapping, acc) do
+    { pool, remaining_mapping } = get_pool(x, y, mapping)
+  end
+
+  def get_pool(x, y, mapping) do
+    keys = build_keys(x,y)
+    {matches, rest} = mapping
+    |> Enum.split(keys)
+    require IEx
+    IEx.pry()
+  end
+
+  def build_keys(x, y) do
+    [
+      {x,y},
+      {x+1, y},
+      {x-1, y},
+      {x, y+1},
+      {x, y-1},
+      {x+1, y+1},
+      {x-1, y-1}
+    ]
+  end
+
+  def build_pools([], _mapping, acc), do: acc
+
+  def sort_pools_by_size(pools) do
+  end
+
+  def group_valleys(mapping) do
+    mapping
+    |> Map.keys()
+    |> Enum.reduce([], fn {x, y}, acc ->
+      find_and_inject(acc, x, y)
+    end)
+  end
+
+  def find_and_inject([], x, y), do: [[{x, y}]]
+
+  def find_and_inject(acc, x, y) do
+    {present, rem} =
+      acc
+      |> Enum.split_with(fn grouping ->
+        require IEx
+
+        if grouping == [{66, 43}] || grouping == [[{66, 43}]] do
+          IEx.pry()
+        end
+
+        grouping
+        |> Enum.any?(fn {prev_x, prev_y} ->
+          [
+            {prev_x + 1, prev_y + 1} == {x, y},
+            {prev_x + 0, prev_y + 1} == {x, y},
+            {prev_x + 1, prev_y + 0} == {x, y},
+            {prev_x - 1, prev_y - 1} == {x, y},
+            {prev_x - 1, prev_y + 0} == {x, y},
+            {prev_x + 0, prev_y - 1} == {x, y}
+          ]
+          |> Enum.any?(fn x -> x end)
+        end)
+      end)
+
+    [present ++ [{x, y}] | rem]
+  end
+
+  def sort_by_size_with_value(mins, mapping) do
+    mins
+    |> Enum.map(fn {{r, c}, _v} ->
+      v = get_adjacent(r, c, mapping)
+      require IEx
+      IEx.pry()
+    end)
+  end
+
+  def reject_nines(_key, val) do
+    val != 9
+  end
+
+  def to_map(arr) do
+    arr
+    |> Enum.reduce(%{}, fn {k, v}, acc -> Map.merge(acc, %{k => v}) end)
+  end
+
+  def group_valleys(mins, mapping) do
+    {{k, val}, rest_mins} = take_one_from_map(mins)
+    [valley, filtered_mins, rest_mapping] = fetch_and_filter_valley(k, val, rest_mins, mapping)
+    require IEx
+    IEx.pry()
+  end
+
+  def take_one_from_map(map) do
+    key = map |> Map.keys() |> List.first()
+    {{key, map[key]}, Map.delete(map, key)}
+  end
+
+  def fetch_and_filter_valley({row, col}, point_val, mins, mapping) do
+    {adjs, new_mapping} = get_adjacent_with_idx(row, col, mapping)
+    require IEx
+    IEx.pry()
+  end
+
+  def get_recursive_adjacent(acc, row_idx, col_idx, mapping) do
+  end
+
+  def get_adjacent_with_idx(row_idx, col_idx, mapping) do
+    adjs =
+      [
+        {{row_idx + 1, col_idx}, mapping[{row_idx + 1, col_idx}]},
+        {{row_idx - 1, col_idx}, mapping[{row_idx - 1, col_idx}]},
+        {{row_idx, col_idx + 1}, mapping[{row_idx, col_idx + 1}]},
+        {{row_idx, col_idx - 1}, mapping[{row_idx, col_idx - 1}]}
+      ]
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+
+    filtered_mapping =
+      adjs
+      |> Enum.reduce(Map.delete(mapping, {row_idx, col_idx}), fn {pos, _v}, acc ->
+        Map.delete(acc, pos)
+      end)
+
+    {adjs, filtered_mapping}
   end
 end
