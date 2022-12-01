@@ -53,7 +53,11 @@ defmodule AdventOfCode.Y2022.Day1 do
 
   def part1() do
     grouped_calories = setup()
-    {_k, %{sum: s, items: _i}} = grouped_calories |> Enum.max_by(fn {k, %{sum: s} = _p} -> s end)
+
+    {_k, %{sum: s, items: _i}} =
+      grouped_calories
+      |> Enum.max_by(fn {_k, %{sum: s} = _p} -> s end)
+
     s
   end
 
