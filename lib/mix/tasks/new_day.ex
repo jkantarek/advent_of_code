@@ -6,18 +6,27 @@ defmodule Mix.Tasks.NewDay do
   def run([year]) do
     [root, y, last_day] =
       Path.wildcard("lib/y_#{year}/*")
-      |> Enum.max_by(fn p ->
-        p
-        |> String.split("/")
-        |> List.last()
-      end)
-      |> String.split("/")
+      |> extract_next_day(year)
 
     last_day
     |> next_day()
     |> generate_new_day(year)
     |> save_file(root, y)
     |> update_doctests(y, year)
+  end
+
+  defp extract_next_day([], year) do
+    ["lib", "y_#{year}", "d0"]
+  end
+
+  defp extract_next_day(data, _year) do
+    data
+    |> Enum.max_by(fn p ->
+      p
+      |> String.split("/")
+      |> List.last()
+    end)
+    |> String.split("/")
   end
 
   defp next_day("d" <> last_day_s) do
