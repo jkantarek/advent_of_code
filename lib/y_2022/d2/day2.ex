@@ -106,14 +106,71 @@ defmodule AdventOfCode.Y2022.Day2 do
   @doc """
   Day 2 - Part 2
 
+  --- Part Two ---
+  The Elf finishes helping with the tent and sneaks back over to you. "Anyway, the second column says how the round needs to end: X means you need to lose, Y means you need to end the round in a draw, and Z means you need to win. Good luck!"
+
+  The total score is still calculated in the same way, but now you need to figure out what shape to choose so the round ends as indicated. The example above now goes like this:
+
+  In the first round, your opponent will choose Rock (A), and you need the round to end in a draw (Y), so you also choose Rock. This gives you a score of 1 + 3 = 4.
+  In the second round, your opponent will choose Paper (B), and you choose Rock so you lose (X) with a score of 1 + 0 = 1.
+  In the third round, you will defeat your opponent's Scissors with Rock for a score of 1 + 6 = 7.
+  Now that you're correctly decrypting the ultra top secret strategy guide, you would get a total score of 12.
+
+  Following the Elf's instructions for the second column, what would your total score be if everything goes exactly according to your strategy guide?
+
   ## Examples
 
     iex> AdventOfCode.Y2022.Day2.part2()
-    nil
+    13187
 
   """
 
   def part2() do
+    {_set, score} =
+      setup()
+      |> find_responses_and_score()
 
+    score
   end
+
+  defp find_responses_and_score(string_pairs) do
+    string_pairs
+    |> Enum.map_reduce(0, fn str, acc ->
+      [o, st] = String.split(str, " ")
+      [opp, str, outcome, score] = find_response(o, st)
+
+      {
+        %{
+          opponent: opp,
+          strategy: str,
+          outcome: outcome,
+          score: score
+        },
+        score + acc
+      }
+    end)
+  end
+
+  defp find_response(st, "X") do
+    normalize(st)
+    |> find_response(:lose)
+  end
+
+  defp find_response(st, "Y") do
+    normalize(st)
+    |> find_response(:tie)
+  end
+
+  defp find_response(st, "Z") do
+    normalize(st)
+    |> find_response(:win)
+  end
+
+  defp find_response(st, :tie), do: [st, st, :tie, 3 + score_strategy(st)]
+  defp find_response(:rock, :lose), do: [:rock, :scissors, :lose, 0 + score_strategy(:scissors)]
+  defp find_response(:rock, :win), do: [:rock, :paper, :lose, 6 + score_strategy(:paper)]
+  defp find_response(:paper, :lose), do: [:paper, :rock, :lose, 0 + score_strategy(:rock)]
+  defp find_response(:paper, :win), do: [:paper, :scissors, :win, 6 + score_strategy(:scissors)]
+  defp find_response(:scissors, :lose), do: [:scissors, :paper, :lose, 0 + score_strategy(:paper)]
+  defp find_response(:scissors, :win), do: [:scissors, :rock, :win, 6 + score_strategy(:rock)]
 end
