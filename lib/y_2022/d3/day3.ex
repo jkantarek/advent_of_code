@@ -144,6 +144,7 @@ defmodule AdventOfCode.Y2022.Day3 do
 
       {
         %{
+          input: str |> String.graphemes() |> MapSet.new(),
           first: first,
           first_final: f_f,
           last: last,
@@ -178,10 +179,41 @@ defmodule AdventOfCode.Y2022.Day3 do
   ## Examples
 
     iex> AdventOfCode.Y2022.Day3.part2()
-    nil
+    2415
 
   """
 
   def part2() do
+    {sets, _sum} =
+      setup()
+      |> split_and_decode()
+
+    sets
+    |> parse_sets(0)
+  end
+
+  defp parse_sets([], acc), do: acc
+
+  defp parse_sets([first, second, third | rest], acc) do
+    [overlap] =
+      reduce_intersection(first.input, second.input, third.input)
+      |> MapSet.to_list()
+
+    parse_sets(rest, acc + compute_priority(overlap))
+  end
+
+  defp reduce_intersection(i1, i2, i3) when i1 == i2 do
+    MapSet.intersection(i2, i3)
+  end
+
+  defp reduce_intersection(i1, i2, i3) when i1 == i3 do
+    MapSet.intersection(i1, i2)
+  end
+
+  defp reduce_intersection(i1, i2, i3) do
+    o1 = MapSet.intersection(i1, i2)
+    o2 = MapSet.intersection(i1, i3)
+    o3 = MapSet.intersection(i2, i3)
+    reduce_intersection(o1, o2, o3)
   end
 end
