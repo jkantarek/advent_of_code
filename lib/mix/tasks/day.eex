@@ -4,7 +4,7 @@ defmodule AdventOfCode.Y<%= year %>.Day<%= day %> do
   """
 
   @doc """
-  Day 1 - Part 1
+  Day <%= day %> - Part 1
 
   ## Examples
 
@@ -15,6 +15,15 @@ defmodule AdventOfCode.Y<%= year %>.Day<%= day %> do
 
   def part1() do
 
+  end
+
+  def setup() do
+    AdventOfCode.etl_file(
+      "lib/y_<%= year %>/d<%= day %>/input.txt",
+      fn x -> x end,
+      &AdventOfCode.split_newline/1,
+      %{reject_blanks: true, reject_nils: true}
+    )
   end
 
   @doc """
