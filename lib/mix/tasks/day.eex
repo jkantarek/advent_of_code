@@ -14,13 +14,17 @@ defmodule AdventOfCode.Y<%= year %>.Day<%= day %> do
   """
 
   def part1() do
+    setup()
+  end
 
+  def decoder(line) do
+    line
   end
 
   def setup() do
     AdventOfCode.etl_file(
       "lib/y_<%= year %>/d<%= day %>/input.txt",
-      fn x -> x end,
+      &decoder/1,
       &AdventOfCode.split_newline/1,
       %{reject_blanks: true, reject_nils: true}
     )
