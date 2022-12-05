@@ -19,7 +19,7 @@ defmodule AdventOfCode do
         filename,
         etl_func,
         split_func \\ &split_newline/1,
-        opts \\ %{reject_blanks: true, reject_nils: true}
+        opts \\ %{reject_blanks: true, reject_nils: true, with_index: false}
       ) do
     {:ok, file} = File.read(filename)
 
@@ -28,8 +28,21 @@ defmodule AdventOfCode do
     |> Enum.reject(fn elem ->
       (opts[:reject_blanks] && elem == "") || (opts[:reject_nils] && is_nil(elem))
     end)
+    |> mapper(etl_func, opts[:with_index] || false)
+  end
+
+  def mapper(payload, etl_func, false) do
+    payload
     |> Enum.map(fn s ->
       etl_func.(s)
+    end)
+  end
+
+  def mapper(payload, etl_func, true) do
+    payload
+    |> Enum.with_index()
+    |> Enum.map(fn p ->
+      etl_func.(p)
     end)
   end
 
