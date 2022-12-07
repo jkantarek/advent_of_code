@@ -88,7 +88,7 @@ defmodule AdventOfCode.Y2022.Day5 do
   def extract_letter([]), do: ""
   def extract_letter([{_pos, v} | _rest]), do: v
 
-  defp process_stack(%{instructions: inst, stacks: stacks}, partitioner \\ &partition_at/3) do
+  defp process_stack(%{instructions: inst, stacks: stacks}, partitioner \\ &Utils.partition_at/3) do
     organized_stacks = organize_stacks(stacks)
 
     inst
@@ -100,14 +100,6 @@ defmodule AdventOfCode.Y2022.Day5 do
         instruction.to => taken ++ stacks[instruction.to]
       })
     end)
-  end
-
-  def partition_at(top, bottom, count) when length(top) == count, do: {top, bottom}
-
-  def partition_at(top, [], _count), do: {top, []}
-
-  def partition_at(top, [first | rest], count) do
-    partition_at([first] ++ top, rest || [], count)
   end
 
   defp organize_stacks(stacks) do
