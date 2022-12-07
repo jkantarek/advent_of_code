@@ -123,7 +123,7 @@ defmodule AdventOfCode.Y2022.Day7 do
   def sum_size(size, :dir) when size <= 100_000, do: size
   def sum_size(_s, _t), do: 0
 
-  def reduce_data([%{type: :cd, val: root} = _c | rest], %{
+  def reduce_data([%{type: :cd, val: _r} = _c | rest], %{
         cursor_arr: [],
         cursor_path: "",
         files: %{}
@@ -215,6 +215,10 @@ defmodule AdventOfCode.Y2022.Day7 do
     build_files_until_command(all_paths, rest, files)
   end
 
+  def build_files_until_command(_paths, commands, files) do
+    {files, commands}
+  end
+
   def sum_parent_dirs([], _s, files), do: files
 
   def sum_parent_dirs([folder | rest], size, f) do
@@ -222,10 +226,6 @@ defmodule AdventOfCode.Y2022.Day7 do
 
     files = Map.merge(f, %{folder => %{size: dir.size + size, type: :dir}})
     sum_parent_dirs(rest, size, files)
-  end
-
-  def build_files_until_command(_paths, commands, files) do
-    {files, commands}
   end
 
   def decoder("$ " <> command) do
@@ -263,13 +263,53 @@ defmodule AdventOfCode.Y2022.Day7 do
   @doc """
   Day 7 - Part 2
 
+  --- Part Two ---
+  Now, you're ready to choose a directory to delete.
+
+  The total disk space available to the filesystem is 70000000. To run the update, you need unused space of at least 30000000. You need to find a directory you can delete that will free up enough space to run the update.
+
+  In the example above, the total size of the outermost directory (and thus the total amount of used space) is 48381165; this means that the size of the unused space must currently be 21618835, which isn't quite the 30000000 required by the update. Therefore, the update still requires a directory with total size of at least 8381165 to be deleted before it can run.
+
+  To achieve this, you have the following options:
+
+  Delete directory e, which would increase unused space by 584.
+  Delete directory a, which would increase unused space by 94853.
+  Delete directory d, which would increase unused space by 24933642.
+  Delete directory /, which would increase unused space by 48381165.
+  Directories e and a are both too small; deleting them would not free up enough space. However, directories d and / are both big enough! Between these, choose the smallest: d, increasing unused space by 24933642.
+
+  Find the smallest directory that, if deleted, would free up enough space on the filesystem to run the update. What is the total size of that directory?
+
   ## Examples
 
     iex> AdventOfCode.Y2022.Day7.part2()
-    nil
+    1623571
 
   """
 
   def part2() do
+    files =
+      setup("input.txt")
+      |> reduce_data(%{cursor_arr: [], cursor_path: "", files: %{}})
+
+    remaining_on_disk = 70_000_000 - files["/"].size
+    target_size = 30_000_000 - remaining_on_disk
+
+    [min | _r] =
+      files
+      |> Enum.reduce([], fn {path, %{size: size, type: type}}, arr ->
+        arr ++ select_element(path, size, type, target_size)
+      end)
+      |> Enum.sort_by(fn %{difference: d} = _s -> d end)
+
+    min.size
   end
+
+  def select_element(path, size, :dir, target) when size >= target do
+    [
+      %{path: path, size: size, difference: size - target}
+    ]
+  end
+
+  def select_element(_p, _s, type, _t) when type in [:file, :dir], do: []
 end
