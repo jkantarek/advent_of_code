@@ -11,19 +11,29 @@ defmodule AdventOfCode.Y<%= year %>.Day<%= day %> do
     iex> AdventOfCode.Y<%= year %>.Day<%= day %>.part1()
     nil
 
+    iex> AdventOfCode.Y<%= year %>.Day<%= day %>.sample()
+    nil
+
+    
+
   """
 
+  def sample() do
+    setup("test_input.txt")
+  end
+
+
   def part1() do
-    setup()
+    setup("input.txt")
   end
 
   def decoder(line) do
     line
   end
 
-  def setup() do
+  def setup(filename) do
     AdventOfCode.etl_file(
-      "lib/y_<%= year %>/d<%= day %>/input.txt",
+      "lib/y_<%= year %>/d<%= day %>/#{filename}",
       &decoder/1,
       &AdventOfCode.split_newline/1,
       %{reject_blanks: true, reject_nils: true}
