@@ -19,7 +19,12 @@ defmodule AdventOfCode do
         filename,
         etl_func,
         split_func \\ &split_newline/1,
-        opts \\ %{reject_blanks: true, reject_nils: true, with_index: false}
+        opts \\ %{
+          reject_blanks: true,
+          reject_nils: true,
+          with_index: false,
+          with_double_index: false
+        }
       ) do
     {:ok, file} = File.read(filename)
 
@@ -28,21 +33,46 @@ defmodule AdventOfCode do
     |> Enum.reject(fn elem ->
       (opts[:reject_blanks] && elem == "") || (opts[:reject_nils] && is_nil(elem))
     end)
-    |> mapper(etl_func, opts[:with_index] || false)
+    |> mapper(etl_func, index_mapper(opts))
   end
 
-  def mapper(payload, etl_func, false) do
+  def index_mapper(%{with_index: true} = _o) do
+    :index
+  end
+
+  def index_mapper(%{with_double_index: true} = _o) do
+    :double
+  end
+
+  def index_mapper(_o) do
+    :none
+  end
+
+  def mapper(payload, etl_func, :none) do
     payload
     |> Enum.map(fn s ->
       etl_func.(s)
     end)
   end
 
-  def mapper(payload, etl_func, true) do
+  def mapper(payload, etl_func, :index) do
     payload
     |> Enum.with_index()
     |> Enum.map(fn p ->
       etl_func.(p)
+    end)
+  end
+
+  def mapper(payload, etl_func, :double) do
+    payload
+    |> Enum.with_index()
+    |> Enum.reduce(%{}, fn {v, idx}, acc ->
+      v
+      |> String.codepoints()
+      |> Enum.with_index()
+      |> Enum.reduce(acc, fn {elem, i}, a ->
+        Map.merge(a, %{{idx, i} => etl_func.({elem, idx, i})})
+      end)
     end)
   end
 
