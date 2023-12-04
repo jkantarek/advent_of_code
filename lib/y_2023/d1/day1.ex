@@ -36,7 +36,7 @@ defmodule AdventOfCode.Y2023.Day1 do
     142
 
     iex> AdventOfCode.Y2023.Day1.part1()
-    nil
+    55621
 
 
   """
@@ -88,13 +88,96 @@ defmodule AdventOfCode.Y2023.Day1 do
   @doc """
   Day 1 - Part 2
 
+  --- Part Two ---
+  Your calculation isn't quite right. It looks like some of the digits are actually spelled out with letters: one, two, three, four, five, six, seven, eight, and nine also count as valid "digits".
+
+  Equipped with this new information, you now need to find the real first and last digit on each line. For example:
+
+  two1nine
+  eightwothree
+  abcone2threexyz
+  xtwone3four
+  4nineeightseven2
+  zoneight234
+  7pqrstsixteen
+  In this example, the calibration values are 29, 83, 13, 24, 42, 14, and 76. Adding these together produces 281.
+
+  What is the sum of all of the calibration values?
+
   ## Examples
 
+
+    iex> AdventOfCode.Y2023.Day1.sample2()
+    292
+
     iex> AdventOfCode.Y2023.Day1.part2()
-    nil
+    53592
+
 
   """
 
-  def part2() do
+  def sample2() do
+    part2("test_input2.txt")
+  end
+
+  def part2(filename \\ "input.txt") do
+    setup(filename)
+    |> Enum.map(fn str ->
+      str
+      |> split_by_digits()
+    end)
+    |> Enum.sum()
+  end
+
+  @collection %{
+    "zero" => "0",
+    "0" => "0",
+    "one" => "1",
+    "1" => "1",
+    "two" => "2",
+    "2" => "2",
+    "three" => "3",
+    "3" => "3",
+    "four" => "4",
+    "4" => "4",
+    "five" => "5",
+    "5" => "5",
+    "six" => "6",
+    "6" => "6",
+    "seven" => "7",
+    "7" => "7",
+    "eight" => "8",
+    "8" => "8",
+    "nine" => "9",
+    "9" => "9"
+  }
+
+  @collection_keys @collection |> Map.keys()
+
+  @collection_keys_regex ~r/(?=(one|two|three|four|five|six|seven|eight|nine|0|1|2|3|4|5|6|7|8|9))/
+
+  def split_by_digits(str) do
+    reg = @collection_keys_regex
+    found_numbers = get_numbers(reg, str) |> List.flatten() |> Enum.reject(&(&1 == ""))
+
+    found_numbers
+    |> Enum.map(fn s ->
+      v = Map.get(@collection, s)
+    end)
+    |> Enum.filter(&(!is_nil(&1)))
+    |> extract_first_and_last()
+  end
+
+  def get_numbers(regex, str) do
+    Regex.scan(regex, str)
+  end
+
+  def extract_first_and_last([first | rest]) do
+    [
+      first,
+      List.last(rest) || first
+    ]
+    |> Enum.join()
+    |> String.to_integer()
   end
 end
