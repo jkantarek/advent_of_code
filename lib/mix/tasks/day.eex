@@ -19,12 +19,12 @@ defmodule AdventOfCode.Y<%= year %>.Day<%= day %> do
   """
 
   def sample() do
-    setup("test_input.txt")
+    part1("test_input.txt")
   end
 
 
-  def part1() do
-    setup("input.txt")
+  def part1(filename \\ "input.txt") do
+    setup(filename)
   end
 
   def decoder(line) do
@@ -48,9 +48,17 @@ defmodule AdventOfCode.Y<%= year %>.Day<%= day %> do
     iex> AdventOfCode.Y<%= year %>.Day<%= day %>.part2()
     nil
 
+    iex> AdventOfCode.Y<%= year %>.Day<%= day %>.sample2()
+    nil
+
   """
 
-  def part2() do
+  def sample2() do
+    part2("test_input.txt")
+  end
 
+
+  def part2(filename \\ "input.txt") do
+    setup(filename)
   end
 end
